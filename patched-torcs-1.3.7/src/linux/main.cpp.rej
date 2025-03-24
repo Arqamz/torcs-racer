@@ -1,0 +1,41 @@
+--- src/linux/main.cpp
++++ ../torcs/src/linux/main.cpp
+@@ -146,6 +169,38 @@ init_args(int argc, char **argv, const char **raceconfig)
+ int
+ main(int argc, char *argv[])
+ {
++
++	struct shared_use_st *shared = NULL;
++    int shmid; 
++    // establish memory sharing 
++    shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0666|IPC_CREAT);  
++    if(shmid == -1)  
++    {  
++        fprintf(stderr, "shmget failed\n");  
++        exit(EXIT_FAILURE);  
++    }  
++  
++    shm = shmat(shmid, 0, 0);  
++    if(shm == (void*)-1)  
++    {  
++        fprintf(stderr, "shmat failed\n");  
++        exit(EXIT_FAILURE);  
++    }  
++    printf("\n********** Memory sharing started, attached at %X **********\n \n", shm);  
++    // set up shared memory 
++    shared = (struct shared_use_st*)shm;  
++    shared->written = 0;
++    shared->pause = 0;
++    shared->zmq_flag = 0;  
++    shared->save_flag = 0;
++
++ 
++    pwritten=&shared->written;
++    pdata=shared->data;
++    ppause=&shared->pause;
++    pzmq_flag = &shared->zmq_flag;
++	psave_flag = &shared->save_flag;
++
+ 	const char *raceconfig = "";
+ 
+ 	init_args(argc, argv, &raceconfig);
